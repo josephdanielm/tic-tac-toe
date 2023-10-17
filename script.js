@@ -11,12 +11,25 @@ const Gameboard = (function () {
         board[row][column] = playerMarker;
     }
 
+    const checkFullBoard = () => {
+        for (let row = 0; row < board.length; row++) {
+            for (let col = 0; col < board[row].length; col++) {
+                if (board[row][col] === '') {
+                    return false; // Found an empty cell
+                }
+            }
+        }
+        return true; // No empty cells found
+    }
+
+
     const getMarkerAt = (row, column) => board[row][column];
 
     return {
         getBoard,
         putMarker,
-        getMarkerAt
+        getMarkerAt,
+        checkFullBoard
     }
 })();
 
@@ -43,6 +56,10 @@ const GameController = (function () {
 
     const players = [p1, p2];
 
+    let gameOverState = false;
+
+    let winningPlayer = '';
+
     let activePlayer = players[0];
 
     const switchActivePlayer = () => {
@@ -52,20 +69,69 @@ const GameController = (function () {
     const getActivePlayer = () => activePlayer;
 
 
+    const checkWinner = () => {
+
+        for (let i = 0; i < 3; i++) {
+            if (board.getMarkerAt(i, 0) === board.getMarkerAt(i, 1) &&
+                board.getMarkerAt(i, 1) === board.getMarkerAt(i, 2) &&
+                board.getMarkerAt(i, 0) !== '') {
+                return board.getMarkerAt(i, 0);
+            }
+        }
+
+        for (let i = 0; i < 3; i++) {
+            if (board.getMarkerAt(0, i) === board.getMarkerAt(1, i) &&
+                board.getMarkerAt(1, i) === board.getMarkerAt(2, i) &&
+                board.getMarkerAt(0, i) !== '') {
+                return board.getMarkerAt(0, i);
+            }
+        }
+
+        if (board.getMarkerAt(0, 0) === board.getMarkerAt(1, 1) &&
+            board.getMarkerAt(1, 1) === board.getMarkerAt(2, 2) &&
+            board.getMarkerAt(0, 0) !== '') {
+            return board.getMarkerAt(0, 0);
+        }
+
+        if (board.getMarkerAt(0, 2) === board.getMarkerAt(1, 1) &&
+            board.getMarkerAt(1, 1) === board.getMarkerAt(2, 0) &&
+            board.getMarkerAt(0, 2) !== '') {
+            return board.getMarkerAt(0, 2);
+        }
+
+        return '';
+    }
+
+    const checkGameOver = () => gameOverState;
+
     const playRound = (row, column) => {
 
         if (board.getMarkerAt(row, column)) return;
 
         board.putMarker(row, column, activePlayer.getPlayerMarker());
-
         switchActivePlayer();
+
+        const winner = checkWinner();
+        // winner = 'X', 'O', or ''
+
+        if (winner === 'X' || winner === 'O') {
+            gameOverState = true;
+            winningPlayer = winner;
+            console.log(winner + ' wins!')
+            return
+        } else if (winner === '' && board.checkFullBoard()) { // HERE
+            gameOverState = true;
+            console.log('tie!')
+            return
+        }
 
     }
 
     return {
         switchActivePlayer,
         getActivePlayer,
-        playRound
+        playRound,
+        checkGameOver
     }
 })();
 
@@ -108,14 +174,10 @@ const DisplayController = (function () {
 
     displayedBoard.addEventListener('click', clickBoard);
 
-    return {
-        drawBoard
-    }
+    drawBoard();
 
 })();
 
 
-
-DisplayController.drawBoard();
 
 
