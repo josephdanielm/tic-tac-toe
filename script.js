@@ -1,5 +1,5 @@
 const Gameboard = (function () {
-    const board = [
+    let board = [
         ['', '', ''],
         ['', '', ''],
         ['', '', '']
@@ -22,6 +22,14 @@ const Gameboard = (function () {
         return true; // No empty cells found
     }
 
+    const resetBoard = () => {
+        board = [
+            ['', '', ''],
+            ['', '', ''],
+            ['', '', '']
+        ];
+    }
+
 
     const getMarkerAt = (row, column) => board[row][column];
 
@@ -29,7 +37,8 @@ const Gameboard = (function () {
         getBoard,
         putMarker,
         getMarkerAt,
-        checkFullBoard
+        checkFullBoard,
+        resetBoard
     }
 })();
 
@@ -102,7 +111,15 @@ const GameController = (function () {
         return '';
     }
 
-    const checkGameOver = () => gameOverState;
+    const getGameOver = () => gameOverState;
+
+    const getWinningPlayer = () => winningPlayer;
+
+    const resetGame = () => {
+        gameOverState = false;
+        winningPlayer = '';
+        activePlayer = players[0];
+    }
 
     const playRound = (row, column) => {
 
@@ -131,7 +148,9 @@ const GameController = (function () {
         switchActivePlayer,
         getActivePlayer,
         playRound,
-        checkGameOver
+        getGameOver,
+        getWinningPlayer,
+        resetGame
     }
 })();
 
@@ -140,6 +159,8 @@ const GameController = (function () {
 
 const DisplayController = (function () {
     const displayedBoard = document.getElementById('board')
+        , panel = document.getElementById('left-panel')
+        , displayedMessage = document.getElementById('displayed-message')
         , game = GameController;
 
     // Draw latest state of board array onto DOM as buttons
@@ -170,6 +191,42 @@ const DisplayController = (function () {
 
         game.playRound(chosenCellRow, chosenCellColumn);
         drawBoard();
+
+        // gameOver => True or False
+        // winner => 'X', 'O', or ''
+        const gameOver = GameController.getGameOver()
+            , winner = GameController.getWinningPlayer();
+
+        if (gameOver) {
+            // disable click
+            const buttons = document.querySelectorAll('.cell');
+            buttons.forEach(button => {
+                button.disabled = true;
+            })
+            // show reset button
+            const resetButton = document.createElement('button');
+            resetButton.classList.add('reset');
+            resetButton.innerText = 'RESET'
+            panel.appendChild(resetButton);
+
+            resetButton.addEventListener('click', () => {
+                Gameboard.resetBoard();
+                GameController.resetGame();
+                drawBoard();
+                displayedBoard.addEventListener('click', clickBoard);
+                displayedMessage.innerText = '';
+                if (panel.contains(resetButton)) {
+                    panel.removeChild(resetButton);
+                }
+            })
+
+            if (winner !== '') {
+                displayedMessage.innerText = `${winner} wins!`;
+            } else {
+                displayedMessage.innerText = `It's a tie!`;
+            }
+        }
+
     }
 
     displayedBoard.addEventListener('click', clickBoard);
