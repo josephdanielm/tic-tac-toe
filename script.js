@@ -1,8 +1,8 @@
 const Gameboard = (function () {
     const board = [
-        ['X', 'O', 'O'],
-        ['O', 'X', 'O'],
-        ['O', 'O', 'X']
+        ['', '', ''],
+        ['', '', ''],
+        ['', '', '']
     ];
 
     const getBoard = () => board;
@@ -11,13 +11,14 @@ const Gameboard = (function () {
         board[row][column] = playerMarker;
     }
 
+    const getMarkerAt = (row, column) => board[row][column];
+
     return {
         getBoard,
-        putMarker
+        putMarker,
+        getMarkerAt
     }
 })();
-
-
 
 
 function createPlayer(name, marker) {
@@ -52,6 +53,9 @@ const GameController = (function () {
 
 
     const playRound = (row, column) => {
+
+        if (board.getMarkerAt(row, column)) return;
+
         board.putMarker(row, column, activePlayer.getPlayerMarker());
 
         switchActivePlayer();
@@ -95,6 +99,8 @@ const DisplayController = (function () {
     function clickBoard(event) {
         const chosenCellRow = event.target.dataset.row
             , chosenCellColumn = event.target.dataset.column;
+
+        if (!chosenCellRow) return;
 
         game.playRound(chosenCellRow, chosenCellColumn);
         drawBoard();
