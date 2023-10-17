@@ -7,17 +7,12 @@ const Gameboard = (function () {
 
     const getBoard = () => board;
 
-    const printBoard = () => {
-        console.table(board);
-    }
-
     const putMarker = (row, column, playerMarker) => {
         board[row][column] = playerMarker;
     }
 
     return {
         getBoard,
-        printBoard,
         putMarker
     }
 })();
@@ -36,22 +31,52 @@ function createPlayer(name, marker) {
     return { getPlayerName, getPlayerMarker };
 }
 
-
-
+// TEMP
+const p1 = createPlayer('player1', 'X');
+const p2 = createPlayer('player2', 'O');
+// TEMP
 
 const GameController = (function () {
 
+    const board = Gameboard;
+
+    const players = [p1, p2];
+
+    let activePlayer = players[0];
+
+    const switchActivePlayer = () => {
+        activePlayer = activePlayer === players[0] ? players[1] : players[0];
+    }
+
+    const getActivePlayer = () => activePlayer;
+
+
+    const playRound = (row, column) => {
+        board.putMarker(row, column, activePlayer.getPlayerMarker());
+
+        switchActivePlayer();
+
+    }
+
+    return {
+        switchActivePlayer,
+        getActivePlayer,
+        playRound
+    }
 })();
 
 
 
 
-
 const DisplayController = (function () {
-    const displayedBoard = document.getElementById('board');
+    const displayedBoard = document.getElementById('board')
+        , game = GameController;
 
+    // Draw latest state of board array onto DOM as buttons
     const drawBoard = () => {
         const board = Gameboard.getBoard();
+
+        displayedBoard.innerHTML = '';
 
         board.forEach((row, i) => {
             row.forEach((cell, j) => {
@@ -66,6 +91,16 @@ const DisplayController = (function () {
             })
         })
     }
+
+    function clickBoard(event) {
+        const chosenCellRow = event.target.dataset.row
+            , chosenCellColumn = event.target.dataset.column;
+
+        game.playRound(chosenCellRow, chosenCellColumn);
+        drawBoard();
+    }
+
+    displayedBoard.addEventListener('click', clickBoard);
 
     return {
         drawBoard
